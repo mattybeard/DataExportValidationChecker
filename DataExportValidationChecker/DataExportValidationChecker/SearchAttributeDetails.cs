@@ -13,12 +13,14 @@ namespace DataExportValidationChecker
 
         [DisplayName("Display Name")]
         public string DisplayName { get; set; }
+        [DisplayName("Attribute Type")]
+        public AttributeType AttrType { get; set; }
 
-        [DisplayName("Max Length")]
+        [Browsable(false)]
         public int? MaxLength { get; set; }
 
         [DisplayName("Failed Validation (n=)")]
-        public int OverCount => OverIds.Count;
+        public int FailedCount => InvalidIds.Count;
 
         [Browsable(false)]
         public int EmptyCount { get; set; }
@@ -27,15 +29,46 @@ namespace DataExportValidationChecker
         public int PopulatedCount { get; set; }
 
         [Browsable(false)]
-        public List<Guid> OverIds { get; set; }
+        public List<Guid> InvalidIds { get; set; }
 
         [Browsable(false)]
         public List<ResultDetails> Results { get; set; }
 
+
+        [Browsable(false)]
+        public double? DoubleMinValue { get; set; }
+        [Browsable(false)]
+        public double? DoubleMaxValue { get; set; }
+        [Browsable(false)]
+        public decimal? DecimalMinValue { get; set; }
+        [Browsable(false)]
+        public decimal? DecimalMaxValue { get; set; }
+        [Browsable(false)]
+        public int? IntMinValue { get; set; }
+        [Browsable(false)]
+        public int? IntMaxValue { get; set; }
+        [Browsable(false)]
+        public long? BigIntMinValue { get; set; }
+        [Browsable(false)]
+        public long? BigIntMaxValue { get; set; }
+        [Browsable(false)]
+        public int[] AllowableValues { get; set; }
+
         public SearchAttributeDetails()
         {
-            OverIds = new List<Guid>();
+            InvalidIds = new List<Guid>();
             Results = new List<ResultDetails>();
+        }
+
+        public enum AttributeType
+        {
+            String,
+            BigInt,
+            Int,
+            Decimal,
+            Double,
+            Lookup,
+            Picklist
         }
     }
 }

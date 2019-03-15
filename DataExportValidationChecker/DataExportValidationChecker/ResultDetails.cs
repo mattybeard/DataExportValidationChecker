@@ -10,6 +10,6 @@ namespace DataExportValidationChecker
     {
         public Guid Id { get; set; }
         public string Name { get; set; }
-        public string ProblemValue { get; set; }
+        public string Failure { get; set; }
     }
 }

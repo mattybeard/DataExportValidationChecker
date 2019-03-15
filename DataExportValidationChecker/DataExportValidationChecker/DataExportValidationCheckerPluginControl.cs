@@ -14,6 +14,7 @@ using Microsoft.Xrm.Sdk;
 using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
+using XrmToolBox.Extensibility.Interfaces;
 
 namespace DataExportValidationChecker
 {
@@ -30,8 +31,6 @@ namespace DataExportValidationChecker
 
         private void MyPluginControl_Load(object sender, EventArgs e)
         {
-            //ShowInfoNotification("This is a notification that can lead to XrmToolBox repository", new Uri("https://github.com/MscrmTools/XrmToolBox"));
-
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
             {
@@ -48,40 +47,6 @@ namespace DataExportValidationChecker
         private void tsbClose_Click(object sender, EventArgs e)
         {
             CloseTool();
-        }
-
-        private void tsbSample_Click(object sender, EventArgs e)
-        {
-            // The ExecuteMethod method handles connecting to an
-            // organization if XrmToolBox is not yet connected
-            ExecuteMethod(GetAccounts);
-        }
-
-        private void GetAccounts()
-        {
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = "Getting accounts",
-                Work = (worker, args) =>
-                {
-                    args.Result = Service.RetrieveMultiple(new QueryExpression("account")
-                    {
-                        TopCount = 50
-                    });
-                },
-                PostWorkCallBack = (args) =>
-                {
-                    if (args.Error != null)
-                    {
-                        MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    var result = args.Result as EntityCollection;
-                    if (result != null)
-                    {
-                        MessageBox.Show($"Found {result.Entities.Count} accounts");
-                    }
-                }
-            });
         }
 
         /// <summary>
@@ -116,6 +81,9 @@ namespace DataExportValidationChecker
 
         private void entitySelection_SelectedItemChanged(object sender, EventArgs e)
         {
+            if (entitySelection.SelectedEntity == null)
+                return;
+
             var retrieveEntityReq = new RetrieveEntityRequest()
             {
                 EntityFilters = EntityFilters.Attributes,
@@ -124,17 +92,83 @@ namespace DataExportValidationChecker
 
             var entityMetadata = (RetrieveEntityResponse)Service.Execute(retrieveEntityReq);
             var stringAttrs = entityMetadata.EntityMetadata.Attributes.Where(a =>
-                a.AttributeType == AttributeTypeCode.String)
+                a.AttributeType == AttributeTypeCode.String && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (StringAttributeMetadata)t).ToList();
 
-            BindDataToTable(stringAttrs
-                .Where(a => string.IsNullOrEmpty(a.AttributeOf))
-                .Select(t => new SearchAttributeDetails()
+            var doubleAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                    a.AttributeType == AttributeTypeCode.Double && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (DoubleAttributeMetadata)t).ToList();
+
+            var intAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                    a.AttributeType == AttributeTypeCode.Integer && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (IntegerAttributeMetadata)t).ToList();
+
+            var decimalAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                    a.AttributeType == AttributeTypeCode.Decimal && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (DecimalAttributeMetadata)t).ToList();
+
+            var bigIntAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                    a.AttributeType == AttributeTypeCode.BigInt && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (BigIntAttributeMetadata)t).ToList();
+
+            var picklistAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                    a.AttributeType == AttributeTypeCode.Picklist && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (PicklistAttributeMetadata) t).ToList();
+
+            var searchDetails = new List<SearchAttributeDetails>();
+            searchDetails.AddRange(stringAttrs.Select(t => new SearchAttributeDetails()
             {
                 LogicalName = t.LogicalName,
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.String,
                 MaxLength = t.MaxLength
-            }).OrderBy(a => a.LogicalName).ToList());
+            }));
+
+            searchDetails.AddRange(doubleAttr.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.Double,
+                DoubleMinValue = t.MinValue,
+                DoubleMaxValue = t.MaxValue
+            }));
+
+            searchDetails.AddRange(decimalAttr.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.Decimal,
+                DecimalMinValue = t.MinValue,
+                DecimalMaxValue = t.MaxValue
+            }));
+
+            searchDetails.AddRange(intAttr.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.Int,
+                IntMinValue = t.MinValue,
+                IntMaxValue = t.MaxValue
+            }));
+
+            searchDetails.AddRange(bigIntAttr.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.BigInt,
+                BigIntMinValue = t.MinValue,
+                BigIntMaxValue = t.MaxValue
+            }));
+
+            searchDetails.AddRange(picklistAttr.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.Picklist,
+                AllowableValues = t.OptionSet.Options.Where(o => o.Value.HasValue).Select(o => o.Value.Value).ToArray()
+            }));
+
+            BindDataToTable(searchDetails.OrderBy(a => a.LogicalName).ToList());
 
             for (int i = 1; i < metadataView.ColumnCount; i++)
                 metadataView.Columns[i].ReadOnly = true;
@@ -180,12 +214,11 @@ namespace DataExportValidationChecker
                     var entities = new EntityCollection();
                     var qry = new QueryExpression(entitySelection.SelectedEntity.LogicalName)
                     {
-                        ColumnSet = new ColumnSet(_searchingAttributes.Select(t => t.LogicalName).ToArray()),
+                        ColumnSet = new ColumnSet(_searchingAttributes.Select(t => t.LogicalName).Union(new[] { entitySelection.SelectedEntity.PrimaryNameAttribute }).ToArray()),
                         PageInfo = new PagingInfo()
                         {
                             Count = 5000,
-                            PageNumber = 1,
-                            ReturnTotalRecordCount = true
+                            PageNumber = 1
                         }
                     };
 
@@ -196,16 +229,130 @@ namespace DataExportValidationChecker
                         totalCount += results.Entities.Count;
                         foreach (var field in _searchingAttributes)
                         {
-                            field.EmptyCount += results.Entities.Count(t => string.IsNullOrEmpty(t.GetAttributeValue<string>(field.LogicalName)));
-                            field.PopulatedCount += results.Entities.Count(t => !string.IsNullOrEmpty(t.GetAttributeValue<string>(field.LogicalName)));                            
-                            field.OverIds.AddRange(results.Entities.Where(t => (t.GetAttributeValue<string>(field.LogicalName) ?? "").Length > field.MaxLength).Select(t => t.Id).ToList());
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.String)
+                            {
+                                field.EmptyCount += results.Entities.Count(t => string.IsNullOrEmpty(t.GetAttributeValue<string>(field.LogicalName)));
+                                field.PopulatedCount += results.Entities.Count(t => !string.IsNullOrEmpty(t.GetAttributeValue<string>(field.LogicalName)));
+
+                                var invalidRecords = results.Entities.Where(t => (t.GetAttributeValue<string>(field.LogicalName) ?? "").Length > field.MaxLength).ToList();
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id).ToList());
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r[field.LogicalName]}"
+                                }).ToList();
+                            }
+
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.Int)
+                            {
+                                if(!field.IntMinValue.HasValue)
+                                    field.IntMinValue = Int32.MinValue;
+
+                                if (!field.IntMaxValue.HasValue)
+                                    field.IntMaxValue = Int32.MaxValue;
+
+                                var invalidRecords = results.Entities.Where(t =>
+                                    t.GetAttributeValue<int?>(field.LogicalName) != null &&
+                                    t.GetAttributeValue<int?>(field.LogicalName).HasValue &&
+                                    (t.GetAttributeValue<int?>(field.LogicalName).Value < field.IntMinValue || t.GetAttributeValue<int?>(field.LogicalName).Value > field.IntMaxValue)).ToList();
+
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id));
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r[field.LogicalName]}"
+                                }).ToList();
+                            }
+
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.BigInt)
+                            {
+                                if (!field.BigIntMinValue.HasValue)
+                                    field.BigIntMinValue = long.MinValue;
+
+                                if (!field.BigIntMaxValue.HasValue)
+                                    field.BigIntMaxValue = long.MaxValue;
+
+                                var invalidRecords = results.Entities.Where(t =>
+                                    t.GetAttributeValue<long?>(field.LogicalName) != null &&
+                                    t.GetAttributeValue<long?>(field.LogicalName).HasValue &&
+                                    (t.GetAttributeValue<long?>(field.LogicalName).Value <= field.BigIntMinValue || t.GetAttributeValue<long?>(field.LogicalName).Value >= field.BigIntMaxValue)).ToList();
+
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id));
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r[field.LogicalName]}"
+                                }).ToList();
+                            }
+
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.Double)
+                            {
+                                if (!field.DoubleMinValue.HasValue)
+                                    field.DoubleMinValue = double.MinValue;
+
+                                if (!field.DoubleMaxValue.HasValue)
+                                    field.DoubleMaxValue = double.MaxValue;
+
+                                var invalidRecords = results.Entities.Where(t =>
+                                    t.GetAttributeValue<double?>(field.LogicalName) != null &&
+                                    t.GetAttributeValue<double?>(field.LogicalName).HasValue &&
+                                    (t.GetAttributeValue<double?>(field.LogicalName).Value <= field.DoubleMinValue || t.GetAttributeValue<double?>(field.LogicalName).Value >= field.DoubleMaxValue)).ToList();
+
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id));
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r[field.LogicalName]}"
+                                }).ToList();
+                            }
+
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.Decimal)
+                            {
+                                if (!field.DecimalMinValue.HasValue)
+                                    field.DecimalMinValue = decimal.MinValue;
+
+                                if (!field.DecimalMaxValue.HasValue)
+                                    field.DecimalMaxValue = decimal.MaxValue;
+
+                                var invalidRecords = results.Entities.Where(t =>
+                                    t.GetAttributeValue<decimal?>(field.LogicalName) != null &&
+                                    t.GetAttributeValue<decimal?>(field.LogicalName).HasValue &&
+                                    (t.GetAttributeValue<decimal?>(field.LogicalName).Value <= field.DecimalMinValue || t.GetAttributeValue<decimal?>(field.LogicalName).Value >= field.DecimalMaxValue)).ToList();
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id));
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r[field.LogicalName]}"
+                                }).ToList();
+                            }
+
+                            if (field.AttrType == SearchAttributeDetails.AttributeType.Picklist)
+                            {
+                                var invalidRecords = results.Entities.Where(t =>
+                                    t.GetAttributeValue<OptionSetValue>(field.LogicalName) != null &&
+                                    !field.AllowableValues.Contains(t.GetAttributeValue<OptionSetValue>(field.LogicalName).Value)
+                                ).ToList();
+
+                                field.InvalidIds.AddRange(invalidRecords.Select(t => t.Id));
+                                field.Results = invalidRecords.Select(r => new ResultDetails()
+                                {
+                                    Id = r.Id,
+                                    Name = r.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
+                                    Failure = $"Invalid data: {r.GetAttributeValue<OptionSetValue>(field.LogicalName).Value}"
+                                }).ToList();
+                            }
                         }
 
                         worker.ReportProgress(-1, $"Analysed {totalCount:N1} records");
 
                         if (!results.MoreRecords)
                         {
-                            _searchingAttributes = _searchingAttributes.OrderByDescending(a => a.OverCount).ToList();
+                            _searchingAttributes = _searchingAttributes.OrderByDescending(a => a.FailedCount).ToList();
                             break;
                         }
 
@@ -224,7 +371,10 @@ namespace DataExportValidationChecker
                         MessageBox.Show(args.Error.ToString(), @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
 
-                    var overColumns = _searchingAttributes.Where(f => f.OverCount > 0).ToArray();
+                    var overColumns = _searchingAttributes.Where(f => f.FailedCount > 0).ToArray();
+                    resultsView.Visible = overColumns.Any();
+                    noIssuesLabel.Visible = !resultsView.Visible;
+
                     if (overColumns.Any())
                         BindDataToTable(_searchingAttributes);
                 }
@@ -247,19 +397,26 @@ namespace DataExportValidationChecker
             if (!matchingData.Results.Any())
             {
                 // We haven't already calculated the results, so let's do that now.
-                foreach (var id in matchingData.OverIds)
+                foreach (var id in matchingData.InvalidIds)
                 {
                     var entity = Service.Retrieve(entitySelection.SelectedEntity.LogicalName, id, new ColumnSet(matchingData.LogicalName, entitySelection.SelectedEntity.PrimaryNameAttribute));
-                    matchingData.Results.Add(new ResultDetails()
+                    var result = new ResultDetails()
                     {
                         Id = id,
                         Name = entity.GetAttributeValue<string>(entitySelection.SelectedEntity.PrimaryNameAttribute),
-                        ProblemValue = entity.GetAttributeValue<string>(matchingData.LogicalName),
-                    });
+                        Failure = $"Invalid data: {entity[matchingData.LogicalName]}"
+                    };
+
+                    if (entity[matchingData.LogicalName] is OptionSetValue)
+                        result.Failure = $"Invalid data: {entity.GetAttributeValue<OptionSetValue>(matchingData.LogicalName).Value}";
+
+                    matchingData.Results.Add(result);
                 }
             }
 
+            resultsView.ColumnHeadersVisible = false;
             resultsView.DataSource = new BindingList<ResultDetails>(matchingData.Results);
+            resultsView.ColumnHeadersVisible = true;
 
             for (var i = 0; i < resultsView.ColumnCount; i++)
                 resultsView.Columns[i].Width = 150;

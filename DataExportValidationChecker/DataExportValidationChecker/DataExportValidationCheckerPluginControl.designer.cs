@@ -38,20 +38,21 @@
             this.checkButton = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.resultsGroupBox = new System.Windows.Forms.GroupBox();
-            this.resultsView = new System.Windows.Forms.DataGridView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panelButtons = new System.Windows.Forms.Panel();
+            this.resultsView = new System.Windows.Forms.DataGridView();
+            this.noIssuesLabel = new System.Windows.Forms.Label();
             this.toolStripMenu.SuspendLayout();
             this.loadGroupBox.SuspendLayout();
             this.previewGroup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).BeginInit();
             this.resultsGroupBox.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.panelButtons.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).BeginInit();
             this.SuspendLayout();
             // 
             // toolStripMenu
@@ -157,6 +158,7 @@
             // 
             // resultsGroupBox
             // 
+            this.resultsGroupBox.Controls.Add(this.noIssuesLabel);
             this.resultsGroupBox.Controls.Add(this.resultsView);
             this.resultsGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.resultsGroupBox.Location = new System.Drawing.Point(0, 0);
@@ -165,20 +167,6 @@
             this.resultsGroupBox.TabIndex = 7;
             this.resultsGroupBox.TabStop = false;
             this.resultsGroupBox.Text = "Results";
-            // 
-            // resultsView
-            // 
-            this.resultsView.AllowUserToAddRows = false;
-            this.resultsView.AllowUserToDeleteRows = false;
-            this.resultsView.AllowUserToResizeRows = false;
-            this.resultsView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.resultsView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.resultsView.Location = new System.Drawing.Point(3, 16);
-            this.resultsView.Name = "resultsView";
-            this.resultsView.RowHeadersVisible = false;
-            this.resultsView.Size = new System.Drawing.Size(551, 541);
-            this.resultsView.TabIndex = 1;
-            this.resultsView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.resultsView_CellMouseDoubleClick);
             // 
             // splitContainer1
             // 
@@ -209,6 +197,33 @@
             this.panelButtons.Size = new System.Drawing.Size(280, 76);
             this.panelButtons.TabIndex = 8;
             // 
+            // resultsView
+            // 
+            this.resultsView.AllowUserToAddRows = false;
+            this.resultsView.AllowUserToDeleteRows = false;
+            this.resultsView.AllowUserToResizeRows = false;
+            this.resultsView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.resultsView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.resultsView.Location = new System.Drawing.Point(3, 16);
+            this.resultsView.Name = "resultsView";
+            this.resultsView.RowHeadersVisible = false;
+            this.resultsView.Size = new System.Drawing.Size(551, 541);
+            this.resultsView.TabIndex = 1;
+            this.resultsView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.resultsView_CellMouseDoubleClick);
+            // 
+            // noIssuesLabel
+            // 
+            this.noIssuesLabel.AutoSize = true;
+            this.noIssuesLabel.Dock = System.Windows.Forms.DockStyle.Top;
+            this.noIssuesLabel.Font = new System.Drawing.Font("Microsoft Sans Serif", 25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.noIssuesLabel.Location = new System.Drawing.Point(3, 16);
+            this.noIssuesLabel.Name = "noIssuesLabel";
+            this.noIssuesLabel.Size = new System.Drawing.Size(424, 39);
+            this.noIssuesLabel.TabIndex = 2;
+            this.noIssuesLabel.Text = "No validation issues found!";
+            this.noIssuesLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.noIssuesLabel.Visible = false;
+            // 
             // DataExportValidationCheckerPluginControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -224,12 +239,13 @@
             this.previewGroup.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).EndInit();
             this.resultsGroupBox.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).EndInit();
+            this.resultsGroupBox.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.panelButtons.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -246,8 +262,9 @@
         private System.Windows.Forms.Button checkButton;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.GroupBox resultsGroupBox;
-        private System.Windows.Forms.DataGridView resultsView;
         private System.Windows.Forms.SplitContainer splitContainer1;
         private System.Windows.Forms.Panel panelButtons;
+        private System.Windows.Forms.DataGridView resultsView;
+        private System.Windows.Forms.Label noIssuesLabel;
     }
 }
