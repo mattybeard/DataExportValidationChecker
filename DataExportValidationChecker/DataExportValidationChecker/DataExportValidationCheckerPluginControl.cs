@@ -18,7 +18,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace DataExportValidationChecker
 {
-    public partial class DataExportValidationCheckerPluginControl : PluginControlBase
+    public partial class DataExportValidationCheckerPluginControl : PluginControlBase, IGitHubPlugin
     {
         private Settings mySettings;
         private List<SearchAttributeDetails> _searchingAttributes;
@@ -47,17 +47,6 @@ namespace DataExportValidationChecker
         private void tsbClose_Click(object sender, EventArgs e)
         {
             CloseTool();
-        }
-
-        /// <summary>
-        /// This event occurs when the plugin is closed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void MyPluginControl_OnCloseTool(object sender, EventArgs e)
-        {
-            // Before leaving, save the settings
-            SettingsManager.Instance.Save(GetType(), mySettings);
         }
 
         /// <summary>
@@ -453,5 +442,8 @@ namespace DataExportValidationChecker
                 Process.Start(url);
             }
         }
+
+        public string RepositoryName => "DataExportValidationChecker";
+        public string UserName => "mattybeard";
     }
 }
