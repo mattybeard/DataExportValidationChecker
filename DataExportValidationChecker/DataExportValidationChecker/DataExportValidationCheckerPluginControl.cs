@@ -195,6 +195,10 @@ namespace DataExportValidationChecker
 
         private void CalculateValidationLevel()
         {
+            // Clear any previous results
+            foreach (var field in _searchingAttributes)
+                field.Reset();
+
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "Calculating results...",
