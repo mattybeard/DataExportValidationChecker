@@ -227,6 +227,12 @@ namespace DataExportValidationChecker
                         }
                     };
 
+                    // Only load records that have one of the values we're interested in
+                    qry.Criteria.FilterOperator = LogicalOperator.Or;
+
+                    foreach (var field in _searchingAttributes)
+                        qry.Criteria.AddCondition(field.LogicalName, ConditionOperator.NotNull);
+
                     var totalCount = 0;
                     while (true)
                     {
