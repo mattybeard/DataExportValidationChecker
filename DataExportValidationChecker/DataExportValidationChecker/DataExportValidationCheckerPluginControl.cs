@@ -359,7 +359,7 @@ namespace DataExportValidationChecker
                             }
                         }
 
-                        worker.ReportProgress(-1, $"Analysed {totalCount:N1} records");
+                        worker.ReportProgress(-1, $"Analysed {totalCount:N0} records");
 
                         if (!results.MoreRecords)
                         {
