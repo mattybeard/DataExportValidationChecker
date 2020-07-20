@@ -84,6 +84,10 @@ namespace DataExportValidationChecker
                 a.AttributeType == AttributeTypeCode.String && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (StringAttributeMetadata)t).ToList();
 
+            var memoAttrs = entityMetadata.EntityMetadata.Attributes.Where(a =>
+                a.AttributeType == AttributeTypeCode.Memo && string.IsNullOrEmpty(a.AttributeOf))
+                .Select(t => (MemoAttributeMetadata)t).ToList();
+
             var doubleAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Double && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (DoubleAttributeMetadata)t).ToList();
@@ -106,6 +110,14 @@ namespace DataExportValidationChecker
 
             var searchDetails = new List<SearchAttributeDetails>();
             searchDetails.AddRange(stringAttrs.Select(t => new SearchAttributeDetails()
+            {
+                LogicalName = t.LogicalName,
+                DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
+                AttrType = SearchAttributeDetails.AttributeType.String,
+                MaxLength = t.MaxLength
+            }));
+
+            searchDetails.AddRange(memoAttrs.Select(t => new SearchAttributeDetails()
             {
                 LogicalName = t.LogicalName,
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
@@ -195,6 +207,10 @@ namespace DataExportValidationChecker
 
         private void CalculateValidationLevel()
         {
+            // Clear any previous results
+            foreach (var field in _searchingAttributes)
+                field.Reset();
+
             WorkAsync(new WorkAsyncInfo
             {
                 Message = "Calculating results...",
@@ -210,6 +226,12 @@ namespace DataExportValidationChecker
                             PageNumber = 1
                         }
                     };
+
+                    // Only load records that have one of the values we're interested in
+                    qry.Criteria.FilterOperator = LogicalOperator.Or;
+
+                    foreach (var field in _searchingAttributes)
+                        qry.Criteria.AddCondition(field.LogicalName, ConditionOperator.NotNull);
 
                     var totalCount = 0;
                     while (true)
@@ -337,7 +359,7 @@ namespace DataExportValidationChecker
                             }
                         }
 
-                        worker.ReportProgress(-1, $"Analysed {totalCount:N1} records");
+                        worker.ReportProgress(-1, $"Analysed {totalCount:N0} records");
 
                         if (!results.MoreRecords)
                         {
