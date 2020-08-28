@@ -148,16 +148,36 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataExportValidationCheckerPlugin.cs" />
+    <Compile Include="DataExportValidationCheckerPluginControl2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="DataExportValidationCheckerPluginControl2.designer.cs">
+      <DependentUpon>DataExportValidationCheckerPluginControl2.cs</DependentUpon>
+    </Compile>
     <Compile Include="DataExportValidationCheckerPluginControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="DataExportValidationCheckerPluginControl.designer.cs">
       <DependentUpon>DataExportValidationCheckerPluginControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="Popups\TestSelectionForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Popups\TestSelectionForm.Designer.cs">
+      <DependentUpon>TestSelectionForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ResultDetails.cs" />
     <Compile Include="SearchAttributeDetails.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="Tests\BaseTest.cs" />
+    <Compile Include="Tests\MatchesRegexTest.cs" />
+    <Compile Include="Tests\MatchesMetadataTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -165,8 +185,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="DataExportValidationCheckerPluginControl2.resx">
+      <DependentUpon>DataExportValidationCheckerPluginControl2.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="DataExportValidationCheckerPluginControl.resx">
       <DependentUpon>DataExportValidationCheckerPluginControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Popups\TestSelectionForm.resx">
+      <DependentUpon>TestSelectionForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

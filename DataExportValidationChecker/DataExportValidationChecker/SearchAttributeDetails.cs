@@ -1,26 +1,41 @@
-﻿using System;
+﻿using DataExportValidationChecker.Tests;
+using Microsoft.Xrm.Sdk.Metadata;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace DataExportValidationChecker
 {
+    public class StatusCodeLookup
+    {
+        public int StatusCode { get; set; }
+        public int StateCode { get; set; }
+    }
     public class SearchAttributeDetails
     {
-        public bool Include { get; set; }
-
         [DisplayName("Logical Name")]
         public string LogicalName { get; set; }
-
+        
         [DisplayName("Display Name")]
         public string DisplayName { get; set; }
+        
         [DisplayName("Attribute Type")]
         public AttributeType AttrType { get; set; }
+        
+        [DisplayName("Additional Format")]
+        public string Format { get; set; }
 
         [Browsable(false)]
-        public int? MaxLength { get; set; }
+        public List<BaseTest> Tests { get; set; }
 
+        [DisplayName("Tests")]
+        public string TestsStr { get; set; }
+        
         [DisplayName("Failed Validation (n=)")]
         public int FailedCount => InvalidIds.Count;
+        
+        [Browsable(false)]
+        public int? MaxLength { get; set; }
 
         [Browsable(false)]
         public int EmptyCount { get; set; }
@@ -33,7 +48,6 @@ namespace DataExportValidationChecker
 
         [Browsable(false)]
         public List<ResultDetails> Results { get; set; }
-
 
         [Browsable(false)]
         public double? DoubleMinValue { get; set; }
@@ -53,17 +67,21 @@ namespace DataExportValidationChecker
         public long? BigIntMaxValue { get; set; }
         [Browsable(false)]
         public int[] AllowableValues { get; set; }
+        [Browsable(false)]
+        public List<StatusCodeLookup> StatusLookups { get; set; }
+        
 
         public SearchAttributeDetails()
         {
             Reset();
+            StatusLookups = new List<StatusCodeLookup>();
         }
 
         public void Reset()
         {
             InvalidIds = new List<Guid>();
             Results = new List<ResultDetails>();
-            EmptyCount = 0;
+            EmptyCount = 0;            
             PopulatedCount = 0;
         }
 
@@ -75,7 +93,9 @@ namespace DataExportValidationChecker
             Decimal,
             Double,
             Lookup,
-            Picklist
+            Picklist,
+            State,
+            Status
         }
     }
 }

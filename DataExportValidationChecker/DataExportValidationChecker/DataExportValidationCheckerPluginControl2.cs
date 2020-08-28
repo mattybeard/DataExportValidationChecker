@@ -19,12 +19,12 @@ using DataExportValidationChecker.Popups;
 
 namespace DataExportValidationChecker
 {
-    public partial class DataExportValidationCheckerPluginControl : PluginControlBase, IGitHubPlugin
+    public partial class DataExportValidationCheckerPluginControl2 : PluginControlBase, IGitHubPlugin
     {
         private Settings mySettings;
         private List<SearchAttributeDetails> _searchingAttributes;
 
-        public DataExportValidationCheckerPluginControl()
+        public DataExportValidationCheckerPluginControl2()
         {
             InitializeComponent();
             _searchingAttributes = new List<SearchAttributeDetails>();
@@ -465,8 +465,8 @@ namespace DataExportValidationChecker
                     }
 
                     var overColumns = _searchingAttributes.Where(f => f.FailedCount > 0).ToArray();
-                    //resultsView.Visible = overColumns.Any();
-                    //noIssuesLabel.Visible = !resultsView.Visible;
+                    resultsView.Visible = overColumns.Any();
+                    noIssuesLabel.Visible = !resultsView.Visible;
 
                     if (overColumns.Any())
                         BindDataToTable(_searchingAttributes);
@@ -507,24 +507,20 @@ namespace DataExportValidationChecker
                 }
             }
 
-            /*
             resultsView.ColumnHeadersVisible = false;
             resultsView.DataSource = new BindingList<ResultDetails>(matchingData.Results);
             resultsView.ColumnHeadersVisible = true;
 
             for (var i = 0; i < resultsView.ColumnCount; i++)
                 resultsView.Columns[i].Width = 150;
-            */
         }
 
         private void resultsView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
         {
-            /*
             resultsView.Rows[e.RowIndex].Selected = true;
             var id = resultsView[0, e.RowIndex].Value;
 
             OpenRecord((Guid)id, entitySelection.SelectedEntity.LogicalName);
-            */
         }
 
         private void OpenRecord(Guid guid, string logicalName)
