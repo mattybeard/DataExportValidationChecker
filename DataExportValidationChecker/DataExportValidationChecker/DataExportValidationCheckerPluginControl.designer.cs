@@ -34,19 +34,19 @@
             this.metadataView = new System.Windows.Forms.DataGridView();
             this.button1 = new System.Windows.Forms.Button();
             this.resultsGroupBox = new System.Windows.Forms.GroupBox();
+            this.resultsView = new System.Windows.Forms.DataGridView();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panelButtons = new System.Windows.Forms.Panel();
-            this.resultsView = new System.Windows.Forms.DataGridView();
             this.loadGroupBox.SuspendLayout();
             this.previewGroup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).BeginInit();
             this.resultsGroupBox.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.panelButtons.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).BeginInit();
             this.SuspendLayout();
             // 
             // entitySelection
@@ -100,6 +100,7 @@
             this.metadataView.Size = new System.Drawing.Size(494, 518);
             this.metadataView.TabIndex = 0;
             this.metadataView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellClick);
+            this.metadataView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellDoubleClick);
             this.metadataView.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellEnter);
             // 
             // button1
@@ -110,7 +111,7 @@
             this.button1.Padding = new System.Windows.Forms.Padding(5);
             this.button1.Size = new System.Drawing.Size(490, 52);
             this.button1.TabIndex = 9;
-            this.button1.Text = "Validate All Fields ->";
+            this.button1.Text = "Validate";
             this.button1.UseVisualStyleBackColor = true;
             this.button1.Click += new System.EventHandler(this.checkAllButton_Click);
             // 
@@ -124,6 +125,20 @@
             this.resultsGroupBox.TabIndex = 7;
             this.resultsGroupBox.TabStop = false;
             this.resultsGroupBox.Text = "Results";
+            // 
+            // resultsView
+            // 
+            this.resultsView.AllowUserToAddRows = false;
+            this.resultsView.AllowUserToDeleteRows = false;
+            this.resultsView.AllowUserToResizeRows = false;
+            this.resultsView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.resultsView.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.resultsView.Location = new System.Drawing.Point(3, 16);
+            this.resultsView.Name = "resultsView";
+            this.resultsView.RowHeadersVisible = false;
+            this.resultsView.Size = new System.Drawing.Size(490, 631);
+            this.resultsView.TabIndex = 1;
+            this.resultsView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.resultsView_CellMouseDoubleClick);
             // 
             // splitContainer1
             // 
@@ -154,20 +169,6 @@
             this.panelButtons.Size = new System.Drawing.Size(500, 62);
             this.panelButtons.TabIndex = 8;
             // 
-            // resultsView
-            // 
-            this.resultsView.AllowUserToAddRows = false;
-            this.resultsView.AllowUserToDeleteRows = false;
-            this.resultsView.AllowUserToResizeRows = false;
-            this.resultsView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.resultsView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.resultsView.Location = new System.Drawing.Point(3, 16);
-            this.resultsView.Name = "resultsView";
-            this.resultsView.RowHeadersVisible = false;
-            this.resultsView.Size = new System.Drawing.Size(490, 631);
-            this.resultsView.TabIndex = 1;
-            this.resultsView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.resultsView_CellMouseDoubleClick);
-            // 
             // DataExportValidationCheckerPluginControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -180,12 +181,12 @@
             this.previewGroup.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).EndInit();
             this.resultsGroupBox.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).EndInit();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.panelButtons.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.resultsView)).EndInit();
             this.ResumeLayout(false);
 
         }

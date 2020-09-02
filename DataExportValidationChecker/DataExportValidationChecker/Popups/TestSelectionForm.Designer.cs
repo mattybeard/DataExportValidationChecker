@@ -35,6 +35,7 @@
             this.okayButton = new System.Windows.Forms.Button();
             this.cancelButton = new System.Windows.Forms.Button();
             this.regexWarning = new System.Windows.Forms.PictureBox();
+            this.applyToAll = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.regexWarning)).BeginInit();
             this.SuspendLayout();
             // 
@@ -73,10 +74,11 @@
             this.regexChoice.FormattingEnabled = true;
             this.regexChoice.Items.AddRange(new object[] {
             "Email",
-            "Telephone",
+            "UK Telephone",
+            "US Telephone",
             "UK Postcode",
             "US Zipcode"});
-            this.regexChoice.Location = new System.Drawing.Point(142, 48);
+            this.regexChoice.Location = new System.Drawing.Point(185, 48);
             this.regexChoice.Name = "regexChoice";
             this.regexChoice.Size = new System.Drawing.Size(121, 21);
             this.regexChoice.TabIndex = 2;
@@ -84,7 +86,7 @@
             // 
             // okayButton
             // 
-            this.okayButton.Location = new System.Drawing.Point(89, 129);
+            this.okayButton.Location = new System.Drawing.Point(150, 171);
             this.okayButton.Name = "okayButton";
             this.okayButton.Size = new System.Drawing.Size(75, 23);
             this.okayButton.TabIndex = 3;
@@ -94,7 +96,7 @@
             // 
             // cancelButton
             // 
-            this.cancelButton.Location = new System.Drawing.Point(170, 129);
+            this.cancelButton.Location = new System.Drawing.Point(231, 171);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(75, 23);
             this.cancelButton.TabIndex = 3;
@@ -104,7 +106,7 @@
             // 
             // regexWarning
             // 
-            this.regexWarning.Location = new System.Drawing.Point(120, 48);
+            this.regexWarning.Location = new System.Drawing.Point(163, 48);
             this.regexWarning.Name = "regexWarning";
             this.regexWarning.Size = new System.Drawing.Size(21, 21);
             this.regexWarning.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -112,16 +114,27 @@
             this.regexWarning.TabStop = false;
             this.regexWarning.Visible = false;
             // 
+            // applyToAll
+            // 
+            this.applyToAll.AutoSize = true;
+            this.applyToAll.Location = new System.Drawing.Point(12, 175);
+            this.applyToAll.Name = "applyToAll";
+            this.applyToAll.Size = new System.Drawing.Size(97, 17);
+            this.applyToAll.TabIndex = 1;
+            this.applyToAll.Text = "Apply rule to all";
+            this.applyToAll.UseVisualStyleBackColor = true;
+            // 
             // TestSelectionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(267, 164);
+            this.ClientSize = new System.Drawing.Size(318, 206);
             this.Controls.Add(this.regexWarning);
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okayButton);
             this.Controls.Add(this.regexChoice);
             this.Controls.Add(this.regexValidation);
+            this.Controls.Add(this.applyToAll);
             this.Controls.Add(this.metadataValidation);
             this.Controls.Add(this.whichLabel);
             this.Name = "TestSelectionForm";
@@ -141,5 +154,6 @@
         private System.Windows.Forms.Button okayButton;
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.PictureBox regexWarning;
+        private System.Windows.Forms.CheckBox applyToAll;
     }
 }

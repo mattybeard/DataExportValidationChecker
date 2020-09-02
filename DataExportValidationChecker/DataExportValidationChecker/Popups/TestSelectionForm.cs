@@ -13,10 +13,12 @@ namespace DataExportValidationChecker.Popups
 {
     internal partial class TestSelectionForm : Form
     {
+        private List<SearchAttributeDetails> allAttributes { get; set; }
         private SearchAttributeDetails attributeDetails { get; set; }
-        public TestSelectionForm(SearchAttributeDetails attributeDetails)
+        public TestSelectionForm(List<SearchAttributeDetails> allAttributes, SearchAttributeDetails attributeDetails)
         {
             InitializeComponent();
+            this.allAttributes = allAttributes;
             this.attributeDetails = attributeDetails;
         }
 
@@ -27,10 +29,18 @@ namespace DataExportValidationChecker.Popups
 
         private void okayButton_Click(object sender, EventArgs e)
         {
-            attributeDetails.Tests = new List<BaseTest>();
-            
             if (metadataValidation.Checked)
-                attributeDetails.Tests.Add(new MatchesMetadataTest());
+            {
+                if (applyToAll.Checked)
+                {
+                    foreach (var attr in allAttributes)
+                        attr.AddTest(new MatchesMetadataTest());
+                }
+                else
+                {
+                    attributeDetails.AddTest(new MatchesMetadataTest());
+                }
+            }
 
             if (regexValidation.Checked)
             {
@@ -41,10 +51,26 @@ namespace DataExportValidationChecker.Popups
                     return;
                 }
 
-                attributeDetails.Tests.Add(new MatchesRegexTest() { RegexType = (string)regexChoice.SelectedItem });
+                if (applyToAll.Checked)
+                {
+                    foreach (var attr in allAttributes)
+                        attr.AddTest(new MatchesRegexTest() { RegexType = (string)regexChoice.SelectedItem });
+                }
+                else
+                {
+                    attributeDetails.AddTest(new MatchesRegexTest() { RegexType = (string)regexChoice.SelectedItem });
+                }
             }
 
-            attributeDetails.TestsStr = String.Join(", ", attributeDetails.Tests.Select(t => t.TestTitle));
+            if (applyToAll.Checked)
+            {
+                foreach (var attr in allAttributes)
+                    attr.TestsStr = String.Join(", ", attributeDetails.Tests.Select(t => t.TestTitle));
+            }
+            else
+            {
+                attributeDetails.TestsStr = String.Join(", ", attributeDetails.Tests.Select(t => t.TestTitle));
+            }
 
             this.Close();
         }

@@ -1,6 +1,8 @@
 ﻿using DataExportValidationChecker.Tests;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -32,22 +34,16 @@ namespace DataExportValidationChecker
         public string TestsStr { get; set; }
         
         [DisplayName("Failed Validation (n=)")]
-        public int FailedCount => InvalidIds.Count;
+        public int FailedCount => FailedRecords.Count;
         
         [Browsable(false)]
         public int? MaxLength { get; set; }
 
         [Browsable(false)]
-        public int EmptyCount { get; set; }
-
-        [Browsable(false)]
         public int PopulatedCount { get; set; }
 
         [Browsable(false)]
-        public List<Guid> InvalidIds { get; set; }
-
-        [Browsable(false)]
-        public List<ResultDetails> Results { get; set; }
+        public List<FailedRecord> FailedRecords { get; set; }
 
         [Browsable(false)]
         public double? DoubleMinValue { get; set; }
@@ -75,13 +71,12 @@ namespace DataExportValidationChecker
         {
             Reset();
             StatusLookups = new List<StatusCodeLookup>();
+            Tests = new List<BaseTest>();
         }
 
         public void Reset()
         {
-            InvalidIds = new List<Guid>();
-            Results = new List<ResultDetails>();
-            EmptyCount = 0;            
+            FailedRecords = new List<FailedRecord>();
             PopulatedCount = 0;
         }
 
@@ -97,5 +92,19 @@ namespace DataExportValidationChecker
             State,
             Status
         }
+
+        public void AddTest(BaseTest test)
+        {
+            if (!Tests.Any(t => t.TestTitle == test.TestTitle))
+                Tests.Add(test);
+        }
+
+        public void RunTests(List<Entity> entities)
+        {
+            foreach (var test in Tests)
+                test.Execute(this, entities);
+        }
+
+
     }
 }

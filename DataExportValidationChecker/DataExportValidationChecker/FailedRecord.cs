@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace DataExportValidationChecker
 {
-    public class ResultDetails
+    public class FailedRecord
     {
         public Guid Id { get; set; }
-        public string Name { get; set; }
-        public string Failure { get; set; }
+        public string FailureReason { get; internal set; }
+        public string FailedValue { get; internal set; }
     }
 }
