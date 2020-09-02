@@ -23,7 +23,7 @@ namespace DataExportValidationChecker
     public partial class DataExportValidationCheckerPluginControl : PluginControlBase, IGitHubPlugin
     {
         private AppInsights ai;
-        private const string aiEndpoint = "https://uksouth-0.in.applicationinsights.azure.com/";
+        private const string aiEndpoint = "https://dc.services.visualstudio.com/v2/track";
         private const string aiKey = "8f6d21d6-a6f2-4d31-82cc-c20efecbe729";
 
         private Settings mySettings;
