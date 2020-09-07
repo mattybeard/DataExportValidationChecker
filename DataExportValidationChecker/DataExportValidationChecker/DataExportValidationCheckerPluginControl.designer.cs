@@ -51,7 +51,7 @@
             // 
             // entitySelection
             // 
-            this.entitySelection.AutoLoadData = false;
+            this.entitySelection.AutoLoadData = true;
             this.entitySelection.Dock = System.Windows.Forms.DockStyle.Fill;
             this.entitySelection.LanguageCode = 1033;
             this.entitySelection.Location = new System.Drawing.Point(3, 16);
@@ -99,7 +99,6 @@
             this.metadataView.RowHeadersVisible = false;
             this.metadataView.Size = new System.Drawing.Size(494, 518);
             this.metadataView.TabIndex = 0;
-            this.metadataView.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellClick);
             this.metadataView.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellDoubleClick);
             this.metadataView.CellEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.metadataView_CellEnter);
             // 

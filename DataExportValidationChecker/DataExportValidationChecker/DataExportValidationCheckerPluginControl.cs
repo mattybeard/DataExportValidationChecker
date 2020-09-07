@@ -258,6 +258,8 @@ namespace DataExportValidationChecker
                 Message = "Calculating results...",
                 Work = (worker, args) =>
                 {
+                    ai.WriteEvent($"Running tests against on {entitySelection.SelectedEntity.LogicalName}");
+
                     var entities = new EntityCollection();
                     var qry = new QueryExpression(entitySelection.SelectedEntity.LogicalName)
                     {
@@ -284,10 +286,7 @@ namespace DataExportValidationChecker
 
                         foreach (var field in searchingAttributes)
                         {
-                            ai.WriteEvent($"Running tests against {field.LogicalName} on {entitySelection.SelectedEntity.LogicalName}");
-                            field.RunTests(results);
-                            ai.WriteEvent($"Completed tests against {field.LogicalName} on {entitySelection.SelectedEntity.LogicalName}");
-
+                            field.RunTests(results);   
                         }
 
                         worker.ReportProgress(-1, $"Analysed {totalCount:N0} records");
@@ -301,6 +300,8 @@ namespace DataExportValidationChecker
                         qry.PageInfo.PageNumber++;
                         qry.PageInfo.PagingCookie = retriveResponse.PagingCookie;
                     }
+
+                    ai.WriteEvent($"Analysed {totalCount:N0} records");
                 },
                 ProgressChanged = e =>
                 {
@@ -309,14 +310,15 @@ namespace DataExportValidationChecker
                 PostWorkCallBack = (args) =>
                 {
                     if (args.Error != null)
-                    {
                         MessageBox.Show(args.Error.ToString(), @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
 
                     var erroredColumns = searchingAttributes.Where(f => f.FailedCount > 0).ToArray();
+                    ai.WriteEvent($"completed tests against on {entitySelection.SelectedEntity.LogicalName} - {erroredColumns.Length} fields with issues");
 
                     if (erroredColumns.Any())
                         BindDataToTable(searchingAttributes);
+                    else
+                        MessageBox.Show("Congratulations, all tests passed!", @"Success", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
             });
         }
@@ -365,13 +367,11 @@ namespace DataExportValidationChecker
         }
 
         private void resultsView_CellMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            /*
+        {            
             resultsView.Rows[e.RowIndex].Selected = true;
             var id = resultsView[0, e.RowIndex].Value;
 
-            OpenRecord((Guid)id, entitySelection.SelectedEntity.LogicalName);
-            */
+            OpenRecord((Guid)id, entitySelection.SelectedEntity.LogicalName);            
         }
 
         private void OpenRecord(Guid guid, string logicalName)
@@ -400,11 +400,6 @@ namespace DataExportValidationChecker
 
         public string RepositoryName => "DataExportValidationChecker";
         public string UserName => "mattybeard";
-
-        private void metadataView_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-        
-        }
 
         private void metadataView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
