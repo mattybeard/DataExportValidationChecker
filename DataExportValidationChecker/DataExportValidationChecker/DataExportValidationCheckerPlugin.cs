@@ -1,4 +1,9 @@
-﻿using System.ComponentModel.Composition;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.Composition;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Interfaces;
 
@@ -7,8 +12,8 @@ namespace DataExportValidationChecker
     // Do not forget to update version number and author (company attribute) in AssemblyInfo.cs class
     // To generate Base64 string for Images below, you can use https://www.base64-image.de/
     [Export(typeof(IXrmToolBoxPlugin)),
-        ExportMetadata("Name", "Data Export Validation Tool"),
-        ExportMetadata("Description", "Comparing what the metadata says a field should be against what the data actually says - ensuring the Data Export Service will correctly sync to SQL"),
+        ExportMetadata("Name", "Data Validation Tool"),
+        ExportMetadata("Description", "Run a number of tests against all your data, including regex validation as well as comparing against the metadata."),
         // Please specify the base64 content of a 32x32 pixels image
         ExportMetadata("SmallImageBase64", "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTCtCgrAAAAD9ElEQVRIS+1WeWxNWRhvnyVIkyFIiESkMgky02cbtVRNbUMtURSxUyJ2iqJiqb3tUCqRV0upNdYZHSFobBH7khJrQiOW0ffuu/v67r2p33Wb49733gx/zPwjkl9uzvnd73y/c77vfOecGH9Mwv+K7wJfxLcs4PH663Ui3cAPXbnRSwINuhHGIhv3YEdl8TPW0V3HO3kn/lFA9h01VY0dPMfuquevm7quHD1XbVC7g/R7CQyMvwOhB09NTZMK9lf/ciOKgHb1XvDnYQbLa9fu688qwATbpJmmyU9fa0qyv0ZbeFfLbuoVb5nUmf5YawidNAEGVHwqcUIQIVCrPUwx8aqqKqbPNHwxjJ+bG3r0gmo5wOo27SXm7dFfvlGOXwi2TScDDYphB84iXYJwgUCDJHhh0xfii4gbHyh2WKa8/y95x/FAk54grdVIMj8vz2q3Glw9qlEyAkh3GUf8EEQINEnBSOQTX0RDvXhLWLYtdP8JP3sDUgoS62BSMriJy/XX76tH1WynHD6rP69Ag/ghiBBoZHnhJq8wQyHEV9p+BNM3BYnpOw3BsQRa9IOZuGq7euEGZsD0nopUGZWUM1xOROQgLhFeEHRTVtBFA1Gy/QJoIFDgpU0lxns/NgIYyNPJkz57cCNCwOPF3MU1RSYvokt3HgsXBieAR/QtgfpWKYi5xdrlO9zYpWKOT7tRjgSIq32fnTgQIYD98K5SLik1gqzV9XjV0stS4UG0g+1GQMBfpyPaQmZ+6O5j2x5gBsw0RYkduYgwBFEEMCPt1kNUUBhPJ46xBDxeuegYlqgcO+/8K+86iWk5GRtRBGCKytRfvQnjcR5YArEJyqEzKALXX48XEZO2HHCRnxBFwN6jzgjYQHlbOWjcI/jTUKRXOXWJS19Ad5+ITGA3o9C+rpKBOh1Rt1GSVqs9jh27XKkfB8r7ShFG0zD0tx+waHv7RiKawH+K7wJfxLcmEJfITVkVbD0ERU+1SeMXbmIHzXYZ2IhNoFMywslPQK34GyY7GZcAn+NTL93GQcYt2qxevReI68wvLnAaEPCZ+WGMDW5c9r8JCLnF4rqdyskyLjOfzy6U955ihy/AERSIT6Wa92V+zUCtWhdD89+E1UWwx52KG5BNm4elU81647Li5+dR8f1R7cSnS0DadgiXJd1zCj9rvbhhN54twtodyokyIasADfX0FbX8ubh+F7xjlZV1fxGyC9FGVLmMldz4ZdycjXh8aDfLsXTi0yWARw7dYRQa3Jil3NQcnMm42vglW+BC2vOnkOMTNxYjAXzWZpwNwaQJuP2RLWnrQabfdMxMKv5DzN+Lm5npP4P4dCf564FnWRgTFTEJHwF6n3tXfGVM4QAAAABJRU5ErkJggg=="),
         // Please specify the base64 content of a 80x80 pixels image
