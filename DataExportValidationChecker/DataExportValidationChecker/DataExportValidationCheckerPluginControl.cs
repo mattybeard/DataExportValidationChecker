@@ -132,7 +132,8 @@ namespace DataExportValidationChecker
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.String,
                 MaxLength = t.MaxLength,
-                Format = t.FormatName.Value
+                Format = t.FormatName.Value,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(memoAttrs.Select(t => new SearchAttributeDetails()
@@ -140,7 +141,8 @@ namespace DataExportValidationChecker
                 LogicalName = t.LogicalName,
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.String,
-                MaxLength = t.MaxLength
+                MaxLength = t.MaxLength,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(doubleAttr.Select(t => new SearchAttributeDetails()
@@ -149,7 +151,8 @@ namespace DataExportValidationChecker
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.Double,
                 DoubleMinValue = t.MinValue,
-                DoubleMaxValue = t.MaxValue
+                DoubleMaxValue = t.MaxValue,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(decimalAttr.Select(t => new SearchAttributeDetails()
@@ -158,7 +161,8 @@ namespace DataExportValidationChecker
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.Decimal,
                 DecimalMinValue = t.MinValue,
-                DecimalMaxValue = t.MaxValue
+                DecimalMaxValue = t.MaxValue,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(intAttr.Select(t => new SearchAttributeDetails()
@@ -167,7 +171,8 @@ namespace DataExportValidationChecker
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.Int,
                 IntMinValue = t.MinValue,
-                IntMaxValue = t.MaxValue
+                IntMaxValue = t.MaxValue,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(bigIntAttr.Select(t => new SearchAttributeDetails()
@@ -176,7 +181,8 @@ namespace DataExportValidationChecker
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.BigInt,
                 BigIntMinValue = t.MinValue,
-                BigIntMaxValue = t.MaxValue
+                BigIntMaxValue = t.MaxValue,
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(picklistAttr.Select(t => new SearchAttributeDetails()
@@ -184,7 +190,8 @@ namespace DataExportValidationChecker
                 LogicalName = t.LogicalName,
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.Picklist,
-                AllowableValues = t.OptionSet.Options.Where(o => o.Value.HasValue).Select(o => o.Value.Value).ToArray()
+                AllowableValues = t.OptionSet.Options.Where(o => o.Value.HasValue).Select(o => o.Value.Value).ToArray(),
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             _searchingDetails.AddRange(stateAttr.Select(t => new SearchAttributeDetails()
@@ -192,7 +199,8 @@ namespace DataExportValidationChecker
                 LogicalName = t.LogicalName,
                 DisplayName = t.DisplayName.UserLocalizedLabel?.Label ?? t.LogicalName,
                 AttrType = SearchAttributeDetails.AttributeType.State,
-                AllowableValues = t.OptionSet.Options.Where(o => o.Value.HasValue).Select(o => o.Value.Value).ToArray()
+                AllowableValues = t.OptionSet.Options.Where(o => o.Value.HasValue).Select(o => o.Value.Value).ToArray(),
+                RequiredLevel = t.RequiredLevel.Value
             }));
 
             foreach (var status in statusAttr)
@@ -258,7 +266,7 @@ namespace DataExportValidationChecker
                 Message = "Calculating results...",
                 Work = (worker, args) =>
                 {
-                    ai.WriteEvent($"Running tests against on {entitySelection.SelectedEntity.LogicalName}");
+                    ai.WriteEvent($"Running tests against {entitySelection.SelectedEntity.LogicalName}");
 
                     var entities = new EntityCollection();
                     var qry = new QueryExpression(entitySelection.SelectedEntity.LogicalName)
@@ -301,7 +309,7 @@ namespace DataExportValidationChecker
                         qry.PageInfo.PagingCookie = retriveResponse.PagingCookie;
                     }
 
-                    ai.WriteEvent($"Analysed {totalCount:N0} records");
+                    ai.WriteEvent($"Analysing records", totalCount);
                 },
                 ProgressChanged = e =>
                 {
@@ -313,7 +321,7 @@ namespace DataExportValidationChecker
                         MessageBox.Show(args.Error.ToString(), @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                     var erroredColumns = searchingAttributes.Where(f => f.FailedCount > 0).ToArray();
-                    ai.WriteEvent($"completed tests against on {entitySelection.SelectedEntity.LogicalName} - {erroredColumns.Length} fields with issues");
+                    ai.WriteEvent($"Failed records", erroredColumns.Length);
 
                     if (erroredColumns.Any())
                         BindDataToTable(searchingAttributes);

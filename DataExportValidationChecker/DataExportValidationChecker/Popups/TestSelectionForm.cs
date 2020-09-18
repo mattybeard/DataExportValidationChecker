@@ -20,6 +20,9 @@ namespace DataExportValidationChecker.Popups
             InitializeComponent();
             this.allAttributes = allAttributes;
             this.attributeDetails = attributeDetails;
+
+            if (attributeDetails.RequiredLevel != Microsoft.Xrm.Sdk.Metadata.AttributeRequiredLevel.None)
+                requiredValidation.Visible = true;
         }
 
         private void regexValidation_CheckStateChanged(object sender, EventArgs e)
@@ -62,10 +65,28 @@ namespace DataExportValidationChecker.Popups
                 }
             }
 
+            if (requiredValidation.Checked)
+            {
+                if (applyToAll.Checked)
+                {
+                    foreach (var attr in allAttributes)
+                    {
+                        if (attr.RequiredLevel != Microsoft.Xrm.Sdk.Metadata.AttributeRequiredLevel.None)
+                        {
+                            attr.AddTest(new RequiredTest());
+                        }
+                    }
+                }
+                else
+                {
+                    attributeDetails.AddTest(new RequiredTest());
+                }
+            }
+
             if (applyToAll.Checked)
             {
                 foreach (var attr in allAttributes)
-                    attr.TestsStr = String.Join(", ", attributeDetails.Tests.Select(t => t.TestTitle));
+                    attr.TestsStr = String.Join(", ", attr.Tests.Select(t => t.TestTitle));
             }
             else
             {

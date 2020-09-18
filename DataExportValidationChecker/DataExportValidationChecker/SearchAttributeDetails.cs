@@ -27,6 +27,9 @@ namespace DataExportValidationChecker
         [DisplayName("Additional Format")]
         public string Format { get; set; }
 
+        [DisplayName("Required Level")]
+        public AttributeRequiredLevel RequiredLevel { get; internal set; }
+
         [Browsable(false)]
         public List<BaseTest> Tests { get; set; }
 
@@ -65,7 +68,6 @@ namespace DataExportValidationChecker
         public int[] AllowableValues { get; set; }
         [Browsable(false)]
         public List<StatusCodeLookup> StatusLookups { get; set; }
-        
 
         public SearchAttributeDetails()
         {
