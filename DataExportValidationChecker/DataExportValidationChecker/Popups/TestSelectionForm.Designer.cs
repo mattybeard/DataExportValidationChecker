@@ -36,6 +36,7 @@
             this.cancelButton = new System.Windows.Forms.Button();
             this.regexWarning = new System.Windows.Forms.PictureBox();
             this.applyToAll = new System.Windows.Forms.CheckBox();
+            this.requiredValidation = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.regexWarning)).BeginInit();
             this.SuspendLayout();
             // 
@@ -124,6 +125,18 @@
             this.applyToAll.Text = "Apply rule to all";
             this.applyToAll.UseVisualStyleBackColor = true;
             // 
+            // requiredValidation
+            // 
+            this.requiredValidation.AutoSize = true;
+            this.requiredValidation.Location = new System.Drawing.Point(15, 75);
+            this.requiredValidation.Name = "requiredValidation";
+            this.requiredValidation.Size = new System.Drawing.Size(103, 17);
+            this.requiredValidation.TabIndex = 1;
+            this.requiredValidation.Text = "Required Check";
+            this.requiredValidation.UseVisualStyleBackColor = true;
+            this.requiredValidation.Visible = false;
+            this.requiredValidation.CheckStateChanged += new System.EventHandler(this.regexValidation_CheckStateChanged);
+            // 
             // TestSelectionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -133,6 +146,7 @@
             this.Controls.Add(this.cancelButton);
             this.Controls.Add(this.okayButton);
             this.Controls.Add(this.regexChoice);
+            this.Controls.Add(this.requiredValidation);
             this.Controls.Add(this.regexValidation);
             this.Controls.Add(this.applyToAll);
             this.Controls.Add(this.metadataValidation);
@@ -155,5 +169,6 @@
         private System.Windows.Forms.Button cancelButton;
         private System.Windows.Forms.PictureBox regexWarning;
         private System.Windows.Forms.CheckBox applyToAll;
+        private System.Windows.Forms.CheckBox requiredValidation;
     }
 }

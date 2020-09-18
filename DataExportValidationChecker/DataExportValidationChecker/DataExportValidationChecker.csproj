@@ -242,6 +242,7 @@
     <Compile Include="SearchAttributeDetails.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="Tests\BaseTest.cs" />
+    <Compile Include="Tests\RequiredTest.cs" />
     <Compile Include="Tests\MatchesRegexTest.cs" />
     <Compile Include="Tests\MatchesMetadataTest.cs" />
   </ItemGroup>
