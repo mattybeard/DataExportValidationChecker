@@ -15,5 +15,7 @@ namespace DataExportValidationChecker
     public class Settings
     {
         public string LastUsedOrganizationWebappUrl { get; set; }
+        public bool DisableMetadataCache { get; internal set; }
+        public bool ForceFlushCache { get; internal set; }
     }
 }

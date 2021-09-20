@@ -17,6 +17,8 @@ using Microsoft.Xrm.Sdk.Metadata;
 using XrmToolBox.Extensibility.Interfaces;
 using DataExportValidationChecker.Popups;
 using System.Reflection;
+using Microsoft.Xrm.Sdk.Metadata.Query;
+using DataExportValidationChecker.Models;
 
 namespace DataExportValidationChecker
 {
@@ -28,28 +30,118 @@ namespace DataExportValidationChecker
 
         private Settings mySettings;
         private List<SearchAttributeDetails> _searchingDetails;
+        private EntityMetadata[] entityMetadata;
+        private TableMetadataComboItem currentTableMetadata;
 
         public DataExportValidationCheckerPluginControl()
         {
             InitializeComponent();
-            
+            tableSelectionComboBox.DisplayMember = "DisplayName";
+
+            // TODO: Reset AI
             ai = new AppInsights(aiEndpoint, aiKey, Assembly.GetExecutingAssembly());
             ai.WriteEvent("Loaded");
         }
 
-        private void MyPluginControl_Load(object sender, EventArgs e)
+        private void PluginControl_Load(object sender, EventArgs e)
         {
             // Loads or creates the settings for the plugin
             if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
             {
                 mySettings = new Settings();
-
                 LogWarning("Settings not found => a new settings file has been created!");
             }
             else
             {
                 LogInfo("Settings found and loaded");
             }
+
+            if (Service != null)
+                RefreshMetadata(true);
+        }
+
+        private void RefreshMetadata(bool first)
+        {
+            var entitiesReq = new RetrieveMetadataChangesRequest
+            {
+                Query = new EntityQueryExpression
+                {
+                    Properties = new MetadataPropertiesExpression
+                    {
+                        PropertyNames =
+                        {
+                            nameof(EntityMetadata.LogicalName),
+                            nameof(EntityMetadata.DisplayName),
+                            nameof(EntityMetadata.Attributes)
+                        }
+                    },
+                    AttributeQuery = new AttributeQueryExpression
+                    {
+                        Properties = new MetadataPropertiesExpression
+                        {
+                            PropertyNames =
+                            {
+                                nameof(AttributeMetadata.LogicalName),
+                                nameof(AttributeMetadata.DisplayName),
+                                nameof(AttributeMetadata.AttributeType),
+                                nameof(StringAttributeMetadata.FormatName)
+                            }
+                        }
+                    }
+                }
+            };
+
+            WorkAsync(new WorkAsyncInfo
+            {
+                Message = $"Getting table metadata via {(mySettings.DisableMetadataCache ? "metadata request" : "cache")}",
+                Work = (worker, args) =>
+                {
+                    // ai.TrackEvent("MetadataLoad");
+                    if (ConnectionDetail.MetadataCacheLoader != null && !mySettings.DisableMetadataCache)
+                    {
+                        //ai.TrackEvent("MetadataLoadViaCache");
+                        try
+                        {
+                            if (first || mySettings.ForceFlushCache)
+                            {
+                                ConnectionDetail.UpdateMetadataCache(true).ConfigureAwait(false).GetAwaiter().GetResult();
+                                mySettings.ForceFlushCache = false;
+                            }
+
+                            if (!first)
+                                ConnectionDetail.UpdateMetadataCache(false).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                            var metadataCache = ConnectionDetail.MetadataCacheLoader.ConfigureAwait(false).GetAwaiter().GetResult();
+                            args.Result = metadataCache.EntityMetadata;
+                            return;
+                        }
+                        catch
+                        {
+                            // Ignore errors loading the metadata cache and carry on loading the metadata ourselves
+                        }
+                    }
+
+                    //ai.TrackEvent("MetadataLoadViaRequest");
+                    args.Result = ((RetrieveMetadataChangesResponse)Service.Execute(entitiesReq)).EntityMetadata.ToArray();
+                },
+                PostWorkCallBack = (args) =>
+                {
+                    if (args.Error != null)
+                    {
+                        //ai.TrackEvent("FailedRequest");
+                        MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    entityMetadata = args.Result as EntityMetadata[];
+
+                    tableSelectionComboBox.Items.Clear();
+                    tableSelectionComboBox.Items.AddRange(entityMetadata
+                        .Select(m => new TableMetadataComboItem() { Metadata = m })
+                        .Where(a => !String.IsNullOrEmpty(a.DisplayName))
+                        .ToArray());
+                }
+            });
         }
 
         private void tsbClose_Click(object sender, EventArgs e)
@@ -71,58 +163,52 @@ namespace DataExportValidationChecker
             }
         }
 
-        private void entitySelection_Load(object sender, EventArgs e)
-        {
-            entitySelection.Service = Service;
-        }
 
-        private void entitySelection_SelectedItemChanged(object sender, EventArgs e)
-        {
-            if (entitySelection.SelectedEntity == null)
-                return;
 
-            var retrieveEntityReq = new RetrieveEntityRequest()
+        private void tableSelectionComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (tableSelectionComboBox.SelectedIndex == -1)
             {
-                EntityFilters = EntityFilters.Attributes,
-                LogicalName = entitySelection.SelectedEntity.LogicalName
-            };
+                currentTableMetadata = null;
+                return;
+            }
 
             _searchingDetails = new List<SearchAttributeDetails>();
 
-            var entityMetadata = (RetrieveEntityResponse)Service.Execute(retrieveEntityReq);
-            var stringAttrs = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            currentTableMetadata = (TableMetadataComboItem)tableSelectionComboBox.SelectedItem;
+            var stringAttrs = currentTableMetadata.Metadata.Attributes.Where(a =>
                 a.AttributeType == AttributeTypeCode.String && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (StringAttributeMetadata)t).ToList();
 
-            var memoAttrs = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var memoAttrs = currentTableMetadata.Metadata.Attributes.Where(a =>
                 a.AttributeType == AttributeTypeCode.Memo && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (MemoAttributeMetadata)t).ToList();
 
-            var doubleAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var doubleAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Double && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (DoubleAttributeMetadata)t).ToList();
 
-            var intAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var intAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Integer && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (IntegerAttributeMetadata)t).ToList();
 
-            var decimalAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var decimalAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Decimal && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (DecimalAttributeMetadata)t).ToList();
 
-            var bigIntAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var bigIntAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.BigInt && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (BigIntAttributeMetadata)t).ToList();
 
-            var picklistAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var picklistAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Picklist && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (PicklistAttributeMetadata) t).ToList();
 
-            var stateAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var stateAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.State && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (StateAttributeMetadata)t).ToList();
 
-            var statusAttr = entityMetadata.EntityMetadata.Attributes.Where(a =>
+            var statusAttr = currentTableMetadata.Metadata.Attributes.Where(a =>
                     a.AttributeType == AttributeTypeCode.Status && string.IsNullOrEmpty(a.AttributeOf))
                 .Select(t => (StatusAttributeMetadata)t).ToList();
 
@@ -249,6 +335,9 @@ namespace DataExportValidationChecker
 
         private void CalculateValidation()
         {
+            if (currentTableMetadata == null)
+                return;
+
             // Clear any previous results
             foreach (var attributeDetail in _searchingDetails)
                 attributeDetail.Reset();
@@ -266,12 +355,12 @@ namespace DataExportValidationChecker
                 Message = "Calculating results...",
                 Work = (worker, args) =>
                 {
-                    ai.WriteEvent($"Running tests against {entitySelection.SelectedEntity.LogicalName}");
+                    //ai.WriteEvent($"Running tests against {selectedTable.LogicalName}");
 
                     var entities = new EntityCollection();
-                    var qry = new QueryExpression(entitySelection.SelectedEntity.LogicalName)
+                    var qry = new QueryExpression(currentTableMetadata.LogicalName)
                     {
-                        ColumnSet = new ColumnSet(searchingAttributes.Select(t => t.LogicalName).Union(new[] { entitySelection.SelectedEntity.PrimaryNameAttribute }).ToArray()),
+                        ColumnSet = new ColumnSet(searchingAttributes.Select(t => t.LogicalName).Union(new[] { currentTableMetadata.PrimaryNameAttribute }).ToArray()),
                         PageInfo = new PagingInfo()
                         {
                             Count = 5000,
@@ -333,6 +422,9 @@ namespace DataExportValidationChecker
 
         private void metadataView_CellEnter(object sender, DataGridViewCellEventArgs e)
         {
+            if (currentTableMetadata == null)
+                return;
+
             metadataView.Rows[e.RowIndex].Selected = true;
 
             var matchingData = _searchingDetails.FirstOrDefault(t => t.LogicalName == (string) metadataView[0, e.RowIndex].Value);
@@ -350,7 +442,7 @@ namespace DataExportValidationChecker
                 foreach (var failedRecord in matchingData.FailedRecords)
                 {
                     var id = failedRecord.Id;
-                    var entity = Service.Retrieve(entitySelection.SelectedEntity.LogicalName, id, new ColumnSet(matchingData.LogicalName, entitySelection.SelectedEntity.PrimaryNameAttribute));
+                    var entity = Service.Retrieve(currentTableMetadata.LogicalName, id, new ColumnSet(matchingData.LogicalName, currentTableMetadata.PrimaryNameAttribute));
                     var result = new FailedRecord()
                     {
                         Id = id,
@@ -379,7 +471,7 @@ namespace DataExportValidationChecker
             resultsView.Rows[e.RowIndex].Selected = true;
             var id = resultsView[0, e.RowIndex].Value;
 
-            OpenRecord((Guid)id, entitySelection.SelectedEntity.LogicalName);            
+            OpenRecord((Guid)id, currentTableMetadata.LogicalName);            
         }
 
         private void OpenRecord(Guid guid, string logicalName)
