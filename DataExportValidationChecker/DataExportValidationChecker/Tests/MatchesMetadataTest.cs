@@ -42,7 +42,7 @@ namespace DataExportValidationChecker.Tests
                 {
                     Id = r.Id,
                     FailureReason = $"Number out of bounds",
-                    FailedValue = r.GetAttributeValue<string>(field.LogicalName)
+                    FailedValue = r.GetAttributeValue<int?>(field.LogicalName).ToString()
                 }).ToList());
             }
 
@@ -63,7 +63,7 @@ namespace DataExportValidationChecker.Tests
                 {
                     Id = r.Id,
                     FailureReason = $"Number out of bounds",
-                    FailedValue = r.GetAttributeValue<string>(field.LogicalName)
+                    FailedValue = r.GetAttributeValue<long?>(field.LogicalName).ToString()
                 }).ToList());
             }
 
@@ -84,7 +84,7 @@ namespace DataExportValidationChecker.Tests
                 {
                     Id = r.Id,
                     FailureReason = $"Number out of bounds",
-                    FailedValue = r.GetAttributeValue<string>(field.LogicalName)
+                    FailedValue = r.GetAttributeValue<double?>(field.LogicalName).ToString()
                 }).ToList());
             }
 
@@ -104,7 +104,7 @@ namespace DataExportValidationChecker.Tests
                 {
                     Id = r.Id,
                     FailureReason = $"Number out of bounds",
-                    FailedValue = r.GetAttributeValue<string>(field.LogicalName)
+                    FailedValue = r.GetAttributeValue<decimal?>(field.LogicalName).ToString()
                 }).ToList());
             }
 

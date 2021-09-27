@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DataExportValidationCheckerPluginControl));
             this.loadGroupBox = new System.Windows.Forms.GroupBox();
             this.tableSelectionComboBox = new System.Windows.Forms.ComboBox();
             this.previewGroup = new System.Windows.Forms.GroupBox();
@@ -35,14 +36,17 @@
             this.button1 = new System.Windows.Forms.Button();
             this.resultsGroupBox = new System.Windows.Forms.GroupBox();
             this.resultsView = new System.Windows.Forms.DataGridView();
+            this.resultsToolStrip = new System.Windows.Forms.ToolStrip();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.panelButtons = new System.Windows.Forms.Panel();
             this.mainToolStrip = new System.Windows.Forms.ToolStrip();
+            this.findWithSqlForCdsButton = new System.Windows.Forms.ToolStripButton();
             this.loadGroupBox.SuspendLayout();
             this.previewGroup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).BeginInit();
             this.resultsGroupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.resultsView)).BeginInit();
+            this.resultsToolStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -114,6 +118,7 @@
             // resultsGroupBox
             // 
             this.resultsGroupBox.Controls.Add(this.resultsView);
+            this.resultsGroupBox.Controls.Add(this.resultsToolStrip);
             this.resultsGroupBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.resultsGroupBox.Location = new System.Drawing.Point(0, 0);
             this.resultsGroupBox.Name = "resultsGroupBox";
@@ -129,12 +134,22 @@
             this.resultsView.AllowUserToResizeRows = false;
             this.resultsView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.resultsView.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.resultsView.Location = new System.Drawing.Point(3, 16);
+            this.resultsView.Location = new System.Drawing.Point(3, 41);
             this.resultsView.Name = "resultsView";
             this.resultsView.RowHeadersVisible = false;
-            this.resultsView.Size = new System.Drawing.Size(490, 606);
+            this.resultsView.Size = new System.Drawing.Size(490, 581);
             this.resultsView.TabIndex = 1;
             this.resultsView.CellMouseDoubleClick += new System.Windows.Forms.DataGridViewCellMouseEventHandler(this.resultsView_CellMouseDoubleClick);
+            // 
+            // resultsToolStrip
+            // 
+            this.resultsToolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.findWithSqlForCdsButton});
+            this.resultsToolStrip.Location = new System.Drawing.Point(3, 16);
+            this.resultsToolStrip.Name = "resultsToolStrip";
+            this.resultsToolStrip.Size = new System.Drawing.Size(490, 25);
+            this.resultsToolStrip.TabIndex = 2;
+            this.resultsToolStrip.Text = "toolStrip1";
             // 
             // splitContainer1
             // 
@@ -173,6 +188,16 @@
             this.mainToolStrip.TabIndex = 11;
             this.mainToolStrip.Text = "toolStrip1";
             // 
+            // findWithSqlForCdsButton
+            // 
+            this.findWithSqlForCdsButton.Image = ((System.Drawing.Image)(resources.GetObject("findWithSqlForCdsButton.Image")));
+            this.findWithSqlForCdsButton.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.findWithSqlForCdsButton.Name = "findWithSqlForCdsButton";
+            this.findWithSqlForCdsButton.Size = new System.Drawing.Size(159, 22);
+            this.findWithSqlForCdsButton.Text = "View records in SQL4CDS";
+            this.findWithSqlForCdsButton.TextImageRelation = System.Windows.Forms.TextImageRelation.TextBeforeImage;
+            this.findWithSqlForCdsButton.Click += new System.EventHandler(this.findWithSqlForCdsButton_Click);
+            // 
             // DataExportValidationCheckerPluginControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -186,7 +211,10 @@
             this.previewGroup.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.metadataView)).EndInit();
             this.resultsGroupBox.ResumeLayout(false);
+            this.resultsGroupBox.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.resultsView)).EndInit();
+            this.resultsToolStrip.ResumeLayout(false);
+            this.resultsToolStrip.PerformLayout();
             this.splitContainer1.Panel1.ResumeLayout(false);
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
@@ -208,5 +236,7 @@
         private System.Windows.Forms.DataGridView resultsView;
         private System.Windows.Forms.ComboBox tableSelectionComboBox;
         private System.Windows.Forms.ToolStrip mainToolStrip;
+        private System.Windows.Forms.ToolStrip resultsToolStrip;
+        private System.Windows.Forms.ToolStripButton findWithSqlForCdsButton;
     }
 }

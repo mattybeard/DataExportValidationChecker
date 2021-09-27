@@ -35,6 +35,17 @@ namespace DataExportValidationChecker.Models
             }
         }
 
+        public string PrimaryIdAttribute
+        {
+            get
+            {
+                if (Metadata == null)
+                    return String.Empty;
+
+                return Metadata.PrimaryIdAttribute;
+            }
+        }
+
         public string PrimaryNameAttribute
         {
             get

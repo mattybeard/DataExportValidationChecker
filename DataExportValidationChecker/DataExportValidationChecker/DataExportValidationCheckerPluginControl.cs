@@ -19,36 +19,38 @@ using DataExportValidationChecker.Popups;
 using System.Reflection;
 using Microsoft.Xrm.Sdk.Metadata.Query;
 using DataExportValidationChecker.Models;
+using Microsoft.ApplicationInsights;
 
 namespace DataExportValidationChecker
 {
-    public partial class DataExportValidationCheckerPluginControl : PluginControlBase, IGitHubPlugin
+    public partial class DataExportValidationCheckerPluginControl : PluginControlBase, IGitHubPlugin, IMessageBusHost
     {
-        private AppInsights ai;
-        private const string aiEndpoint = "https://dc.services.visualstudio.com/v2/track";
-        private const string aiKey = "8f6d21d6-a6f2-4d31-82cc-c20efecbe729";
+        private TelemetryClient ai;
+        private const string aiKey = "e4dff6e2-6a34-42a8-a0f3-6b1e98cf5547";
 
-        private Settings mySettings;
+        private Settings settings;
         private List<SearchAttributeDetails> _searchingDetails;
         private EntityMetadata[] entityMetadata;
         private TableMetadataComboItem currentTableMetadata;
+
+        public string RepositoryName => "DataExportValidationChecker";
+        public string UserName => "mattybeard";
 
         public DataExportValidationCheckerPluginControl()
         {
             InitializeComponent();
             tableSelectionComboBox.DisplayMember = "DisplayName";
 
-            // TODO: Reset AI
-            ai = new AppInsights(aiEndpoint, aiKey, Assembly.GetExecutingAssembly());
-            ai.WriteEvent("Loaded");
+            ai = new TelemetryClient(new Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration(aiKey));
+            ai.TrackEvent("Loaded");
         }
 
         private void PluginControl_Load(object sender, EventArgs e)
         {
             // Loads or creates the settings for the plugin
-            if (!SettingsManager.Instance.TryLoad(GetType(), out mySettings))
+            if (!SettingsManager.Instance.TryLoad(GetType(), out settings))
             {
-                mySettings = new Settings();
+                settings = new Settings();
                 LogWarning("Settings not found => a new settings file has been created!");
             }
             else
@@ -93,19 +95,19 @@ namespace DataExportValidationChecker
 
             WorkAsync(new WorkAsyncInfo
             {
-                Message = $"Getting table metadata via {(mySettings.DisableMetadataCache ? "metadata request" : "cache")}",
+                Message = $"Getting table metadata via {(settings.DisableMetadataCache ? "metadata request" : "cache")}",
                 Work = (worker, args) =>
                 {
-                    // ai.TrackEvent("MetadataLoad");
-                    if (ConnectionDetail.MetadataCacheLoader != null && !mySettings.DisableMetadataCache)
+                    ai.TrackEvent("Metadata Load");
+                    if (ConnectionDetail.MetadataCacheLoader != null && !settings.DisableMetadataCache)
                     {
-                        //ai.TrackEvent("MetadataLoadViaCache");
+                        ai.TrackEvent("Metadata Load Via Cache");
                         try
                         {
-                            if (first || mySettings.ForceFlushCache)
+                            if (first || settings.ForceFlushCache)
                             {
                                 ConnectionDetail.UpdateMetadataCache(true).ConfigureAwait(false).GetAwaiter().GetResult();
-                                mySettings.ForceFlushCache = false;
+                                settings.ForceFlushCache = false;
                             }
 
                             if (!first)
@@ -115,20 +117,21 @@ namespace DataExportValidationChecker
                             args.Result = metadataCache.EntityMetadata;
                             return;
                         }
-                        catch
+                        catch (Exception ex)
                         {
                             // Ignore errors loading the metadata cache and carry on loading the metadata ourselves
+                            ai.TrackException(ex);
                         }
                     }
 
-                    //ai.TrackEvent("MetadataLoadViaRequest");
+                    ai.TrackEvent("Metadata Load Via Request");
                     args.Result = ((RetrieveMetadataChangesResponse)Service.Execute(entitiesReq)).EntityMetadata.ToArray();
                 },
                 PostWorkCallBack = (args) =>
                 {
                     if (args.Error != null)
                     {
-                        //ai.TrackEvent("FailedRequest");
+                        ai.TrackException(args.Error);
                         MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
@@ -144,11 +147,6 @@ namespace DataExportValidationChecker
             });
         }
 
-        private void tsbClose_Click(object sender, EventArgs e)
-        {
-            CloseTool();
-        }
-
         /// <summary>
         /// This event occurs when the connection has been updated in XrmToolBox
         /// </summary>
@@ -156,9 +154,9 @@ namespace DataExportValidationChecker
         {
             base.UpdateConnection(newService, detail, actionName, parameter);
 
-            if (mySettings != null && detail != null)
+            if (settings != null && detail != null)
             {
-                mySettings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
+                settings.LastUsedOrganizationWebappUrl = detail.WebApplicationUrl;
                 LogInfo("Connection has changed to: {0}", detail.WebApplicationUrl);
             }
         }
@@ -355,8 +353,6 @@ namespace DataExportValidationChecker
                 Message = "Calculating results...",
                 Work = (worker, args) =>
                 {
-                    //ai.WriteEvent($"Running tests against {selectedTable.LogicalName}");
-
                     var entities = new EntityCollection();
                     var qry = new QueryExpression(currentTableMetadata.LogicalName)
                     {
@@ -398,7 +394,8 @@ namespace DataExportValidationChecker
                         qry.PageInfo.PagingCookie = retriveResponse.PagingCookie;
                     }
 
-                    ai.WriteEvent($"Analysing records", totalCount);
+                    args.Result = totalCount;
+                    ai.TrackEvent("AnalysingRecords", new Dictionary<string, string> { ["TableName"] = currentTableMetadata.LogicalName }, new Dictionary<string, double> { ["RecordsAnalysed"] = totalCount });
                 },
                 ProgressChanged = e =>
                 {
@@ -410,12 +407,16 @@ namespace DataExportValidationChecker
                         MessageBox.Show(args.Error.ToString(), @"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
                     var erroredColumns = searchingAttributes.Where(f => f.FailedCount > 0).ToArray();
-                    ai.WriteEvent($"Failed records", erroredColumns.Length);
+                    foreach (var erroredColumn in erroredColumns)
+                        ai.TrackEvent("FailedRule", new Dictionary<string, string> { ["FieldName"] = erroredColumn.LogicalName }, new Dictionary<string, double> { ["Count"] = erroredColumn.FailedRecords.Count });
 
                     if (erroredColumns.Any())
                         BindDataToTable(searchingAttributes);
                     else
+                    { 
+                        ai.TrackEvent("AllRulesPassed", null, new Dictionary<string, double> { ["RecordsAnalysed"] = ((double)args.Result) });
                         MessageBox.Show("Congratulations, all tests passed!", @"Success", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
                 }
             });
         }
@@ -471,7 +472,7 @@ namespace DataExportValidationChecker
             resultsView.Rows[e.RowIndex].Selected = true;
             var id = resultsView[0, e.RowIndex].Value;
 
-            OpenRecord((Guid)id, currentTableMetadata.LogicalName);            
+            OpenRecord((Guid)id, currentTableMetadata.LogicalName);
         }
 
         private void OpenRecord(Guid guid, string logicalName)
@@ -498,9 +499,6 @@ namespace DataExportValidationChecker
             }
         }
 
-        public string RepositoryName => "DataExportValidationChecker";
-        public string UserName => "mattybeard";
-
         private void metadataView_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.RowIndex == -1 || e.ColumnIndex == -1)
@@ -514,6 +512,35 @@ namespace DataExportValidationChecker
             testSelectionForm.ShowDialog();
 
             metadataView.Refresh();
+        }
+
+        public event EventHandler<MessageBusEventArgs> OnOutgoingMessage;
+        private void findWithSqlForCdsButton_Click(object sender, EventArgs e)
+        {
+            if (metadataView.SelectedRows.Count < 0 || metadataView.SelectedRows.Count > 1)
+            {
+                MessageBox.Show("Please select a single results row");
+                return;
+            }
+
+            var currentSelection = metadataView.SelectedRows[0].DataBoundItem as SearchAttributeDetails;
+            var selectStatement = String.Concat("SELECT ", currentTableMetadata.PrimaryIdAttribute, ", ", currentTableMetadata.PrimaryNameAttribute, " FROM ", currentTableMetadata.LogicalName, " ", currentSelection.GenerateSelectWhereStatement());
+            var args = new MessageBusEventArgs("SQL 4 CDS") { TargetArgument = new Dictionary<string, string>() { ["SQL"] = selectStatement } };
+            // TODO: Reset AI
+            ai.TrackEvent("Outgoing Message", new Dictionary<string, string> { ["Target"] = "SQL4CDS", ["Command"] = selectStatement });
+            try
+            {
+                OnOutgoingMessage(this, args);
+            } catch(Exception ex)
+            {
+                ai.TrackException(ex, new Dictionary<string, string> { ["Target"] = "SQL4CDS", ["Command"] = selectStatement });
+                MessageBox.Show("Failed to open SQL4CDS. Please ensure it's installed with the latest version");
+            }
+        }
+
+        public void OnIncomingMessage(MessageBusEventArgs message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

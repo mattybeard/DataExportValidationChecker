@@ -107,6 +107,38 @@ namespace DataExportValidationChecker
                 test.Execute(this, entities);
         }
 
+        public string GenerateSelectWhereStatement()
+        {
+            var whereStatement = "WHERE ";
+            if (AttrType == AttributeType.String)
+                whereStatement = String.Concat(whereStatement, "LEN(", LogicalName, ") > ", MaxLength);
 
+            if (AttrType == AttributeType.Int)
+                whereStatement = String.Concat(whereStatement, LogicalName, " > ", IntMaxValue, " OR ", LogicalName, " < ", IntMinValue);
+
+            if (AttrType == AttributeType.BigInt)
+                whereStatement = String.Concat(whereStatement, LogicalName, " > ", BigIntMaxValue, " OR ", LogicalName, " < ", BigIntMinValue);
+
+            if (AttrType == AttributeType.Double)
+                whereStatement = String.Concat(whereStatement, LogicalName, " > ", DoubleMaxValue, " OR ", LogicalName, " < ", DoubleMinValue);
+
+            if (AttrType == AttributeType.Decimal)
+                whereStatement = String.Concat(whereStatement, LogicalName, " > ", DecimalMaxValue, " OR ", LogicalName, " < ", DecimalMinValue);
+
+            if (AttrType == AttributeType.Picklist || AttrType == AttributeType.State)
+                whereStatement = String.Concat(whereStatement, LogicalName, " NOT IN (", String.Join(",", AllowableValues.Select(c => c.ToString())), ")");
+
+            if (AttrType == AttributeType.Status)
+            {
+                var groupedStates = StatusLookups.GroupBy(s => s.StateCode);
+                foreach(var state in groupedStates)
+                    whereStatement = String.Concat(whereStatement, "(statecode = ", state.Key, " AND statuscode NOT IN (", String.Join(",", state.Select(c => c.StatusCode)), ") OR ");
+
+                return whereStatement.Substring(0, whereStatement.Length - 4);
+            }
+
+            return whereStatement;
+        }
+        
     }
 }
