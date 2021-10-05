@@ -525,8 +525,8 @@ namespace DataExportValidationChecker
 
             var currentSelection = metadataView.SelectedRows[0].DataBoundItem as SearchAttributeDetails;
             var selectStatement = String.Concat("SELECT ", currentTableMetadata.PrimaryIdAttribute, ", ", currentTableMetadata.PrimaryNameAttribute, " FROM ", currentTableMetadata.LogicalName, " ", currentSelection.GenerateSelectWhereStatement());
-            var args = new MessageBusEventArgs("SQL 4 CDS") { TargetArgument = new Dictionary<string, string>() { ["SQL"] = selectStatement } };
-            // TODO: Reset AI
+            var messageBusArgs = new Dictionary<string, object>() { ["SQL"] = selectStatement, ["ConvertOnly"] = false };
+            var args = new MessageBusEventArgs("SQL 4 CDS") { TargetArgument = messageBusArgs };
             ai.TrackEvent("Outgoing Message", new Dictionary<string, string> { ["Target"] = "SQL4CDS", ["Command"] = selectStatement });
             try
             {
